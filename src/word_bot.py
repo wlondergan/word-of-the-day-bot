@@ -1,14 +1,12 @@
 from discord import Client, MessageType, Intents, Message
 import os
 from copy import deepcopy
-from english_processing import get_word_of_the_day, shortest_available_stem
+from src.english_processing import get_word_of_the_day, shortest_available_stem
 
 token = os.environ['TOKEN']
 channel_id = int(os.environ['CHANNEL_ID'])
 
 EMOJI_ID = 1259346961627086918
-
-WORD_OF_THE_DAY_CHANNEL_ID = 1264364494507741184
 
 intents = Intents.default()
 intents.message_content = True
