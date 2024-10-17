@@ -1,7 +1,7 @@
 from discord import Client, MessageType, Intents, Message
 import os
 from copy import deepcopy
-from src.english_processing import get_word_of_the_day, shortest_available_stem
+from english_processing import get_word_of_the_day, shortest_available_stem
 
 token = os.environ['TOKEN']
 channel_id = int(os.environ['CHANNEL_ID'])
@@ -12,10 +12,9 @@ intents = Intents.default()
 intents.message_content = True
 
 class WordOfTheDayInfo:
-    def __init__(self, msg_id, user_id, date_time):
+    def __init__(self, msg_id, user_id):
         self.msg_id = msg_id
         self.user_id = user_id
-        self.date_time = date_time
 
 class WordBot(Client):
 
@@ -36,7 +35,7 @@ class WordBot(Client):
             if message.author != self.user.id and message.type == MessageType.default:
                 res = self._determine_word_of_the_day(message)
                 if type(res) is str:
-                    self._words[res] = WordOfTheDayInfo(message.id, message.author.id, deepcopy(message.created_at))
+                    self._words[res] = WordOfTheDayInfo(message.id, message.author.id)
 
     async def on_message(self, message: Message):
 
@@ -47,9 +46,10 @@ class WordBot(Client):
                 return
             
             res = self._determine_word_of_the_day(message)
+
             if type(res) is str:
                 if res:
-                    self._words[res] = WordOfTheDayInfo(message.id, message.author.id, deepcopy(message.created_at))
+                    self._words[res] = WordOfTheDayInfo(message.id, message.author.id)
                     await message.add_reaction(self.get_emoji(EMOJI_ID))
             elif res is not None:
                 original_message = await message.channel.fetch_message(res.msg_id)
