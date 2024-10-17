@@ -20,6 +20,6 @@ def get_word_of_the_day(msg: str) -> str | None:
     msg_tokens = _tokenize_message(msg)
     if len(msg_tokens) > 0:
         first_word = msg_tokens[0].lower()
-        if (len(msg_tokens) == 1 or msg_tokens[1] == '(') and _real_english_word(first_word):
+        if (len(msg_tokens) == 1 or msg_tokens[1][0] == '(') and _real_english_word(first_word):
             return first_word
     return None
