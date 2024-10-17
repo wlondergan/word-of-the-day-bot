@@ -23,5 +23,3 @@ def get_word_of_the_day(msg: str) -> str | None:
         if (len(msg_tokens) == 1 or msg_tokens[1] == '(') and _real_english_word(first_word):
             return first_word
     return None
-
-print(_real_english_word('lmao'))
