@@ -36,6 +36,7 @@ class WordBot(Client):
             if stem in self._words:
                 return self._words[stem]
             else:
+                print('new word of the day: {}'.format(word))
                 return stem
             
     def _already_posted_on(self, date_time, user) -> bool:
