@@ -45,6 +45,7 @@ class WordBot(Client):
         return True
                 
     async def on_ready(self):
+        print("connected to discord server")
         self._words = {}
         wotd_channel = self.get_channel(channel_id)
         async for message in wotd_channel.history(limit=None, oldest_first=True):
