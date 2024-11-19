@@ -36,7 +36,6 @@ class WordBot(Client):
             if stem in self._words:
                 return self._words[stem]
             else:
-                print('new word of the day: {}'.format(word))
                 return stem
             
     def _already_posted_on(self, date_time, user) -> bool:
@@ -69,6 +68,7 @@ class WordBot(Client):
             res = self._determine_word_of_the_day(message)
 
             if type(res) is str:
+                print('new word of the day: {}'.format(message.content))
                 timestamp = to_est(message.created_at)
                 if res and not self._already_posted_on(timestamp, message.author.id):
                     self._words[res] = WordOfTheDayInfo(message.id, message.author.id)
