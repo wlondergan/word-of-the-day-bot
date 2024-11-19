@@ -60,6 +60,7 @@ class WordBot(Client):
     async def on_message(self, message: Message):
 
         if message.channel.id == channel_id and message.type == MessageType.default:
+            print(message.content)
             
             #don't bother checking the bot's own messages
             if message.author.id == self.user.id:
