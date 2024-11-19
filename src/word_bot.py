@@ -1,6 +1,5 @@
 from discord import Client, MessageType, Intents, Message
 import os
-from copy import deepcopy
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from english_processing import get_word_of_the_day, shortest_available_stem
@@ -39,13 +38,12 @@ class WordBot(Client):
                 return stem
             
     def _already_posted_on(self, date_time, user) -> bool:
-        for v in self._words.items():
+        for v in self._words.values():
             if v.user_id == user and date_time.date() == v.timecode.date():
-                return False
-        return True
+                return True
+        return False
                 
     async def on_ready(self):
-        print("connected to discord server")
         self._words = {}
         wotd_channel = self.get_channel(channel_id)
         async for message in wotd_channel.history(limit=None, oldest_first=True):
@@ -53,16 +51,12 @@ class WordBot(Client):
                 res = self._determine_word_of_the_day(message)
                 if type(res) is str:
                     timecode = to_est(message.created_at)
-                    if self._already_posted_on(timecode, message.author.id):
-                        continue
-                    else:
+                    if not self._already_posted_on(timecode, message.author.id):
                         self._words[res] = WordOfTheDayInfo(message.id, message.author.id, timecode)
 
     async def on_message(self, message: Message):
-
         if message.channel.id == channel_id and message.type == MessageType.default:
             print(message.content)
-            
             #don't bother checking the bot's own messages
             if message.author.id == self.user.id:
                 return
@@ -72,9 +66,12 @@ class WordBot(Client):
             if type(res) is str:
                 print('new word of the day: {}'.format(message.content))
                 timestamp = to_est(message.created_at)
-                if res and not self._already_posted_on(timestamp, message.author.id):
-                    self._words[res] = WordOfTheDayInfo(message.id, message.author.id)
-                    await message.add_reaction(self.get_emoji(EMOJI_ID))
+                if res:
+                    if self._already_posted_on(timestamp, message.author.id):
+                        await message.reply("Only one word of the day per day, bozo 💀")
+                    else:
+                        self._words[res] = WordOfTheDayInfo(message.id, message.author.id)
+                        await message.add_reaction(self.get_emoji(EMOJI_ID))
             elif res is not None:
                 original_message = await message.channel.fetch_message(res.msg_id)
                 await message.reply(":bangbang:Recycled word alert:bangbang:\n {} already said [{}]({})"
