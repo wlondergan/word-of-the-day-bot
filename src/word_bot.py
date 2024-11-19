@@ -65,12 +65,12 @@ class WordBot(Client):
 
             if type(res) is str:
                 print('new word of the day: {}'.format(message.content))
-                timestamp = to_est(message.created_at)
+                timecode = to_est(message.created_at)
                 if res:
-                    if self._already_posted_on(timestamp, message.author.id):
+                    if self._already_posted_on(timecode, message.author.id):
                         await message.reply("Only one word of the day per day, bozo 💀")
                     else:
-                        self._words[res] = WordOfTheDayInfo(message.id, message.author.id)
+                        self._words[res] = WordOfTheDayInfo(message.id, message.author.id, timecode)
                         await message.add_reaction(self.get_emoji(EMOJI_ID))
             elif res is not None:
                 original_message = await message.channel.fetch_message(res.msg_id)
