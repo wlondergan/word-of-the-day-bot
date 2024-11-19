@@ -17,7 +17,7 @@ def _tokenize_message(msg: str):
         return msg.split(' ') #if the real human tokenizer fails, default to naive tokenization instead
     
 def _real_english_word(word: str) -> bool:
-    return d_us.check(word) or d_gb.check(word)
+    return word != '' and (d_us.check(word) or d_gb.check(word))
     
 def get_word_of_the_day(msg: str) -> str | None:
     msg_tokens = _tokenize_message(msg)
