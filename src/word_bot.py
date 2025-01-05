@@ -1,5 +1,6 @@
 from discord import Client, MessageType, Intents, Message
 import os
+import sys
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from english_processing import get_word_of_the_day, shortest_available_stem
@@ -62,6 +63,7 @@ class WordBot(Client):
                         await self.remove_reaction(message)
                 else:
                     await self.remove_reaction(message)
+        sys.stderr.print("Finished parsing previous messages and setting up.")
 
     async def on_message(self, message: Message):
         if message.channel.id == channel_id and message.type == MessageType.default:
