@@ -6,8 +6,8 @@ from english_processing import get_word_of_the_day, shortest_available_stem
 
 token = os.environ['TOKEN']
 channel_id = int(os.environ['CHANNEL_ID'])
-blacklist_file = os.environ['BLACKLIST']
-whitelist_file = os.environ['WHITELIST']
+#blacklist_file = os.environ['BLACKLIST']
+#whitelist_file = os.environ['WHITELIST']
 eastern_time_info = ZoneInfo('America/New_York')
 utc_info = timezone.utc
 
