@@ -59,9 +59,9 @@ class WordBot(Client):
                     if not self._already_posted_on(timecode, message.author.id):
                         self._words[res] = WordOfTheDayInfo(message.id, message.author.id, timecode)
                     else:
-                        self.remove_reaction(message)
+                        await self.remove_reaction(message)
                 else:
-                    self.remove_reaction(message)
+                    await self.remove_reaction(message)
 
     async def on_message(self, message: Message):
         if message.channel.id == channel_id and message.type == MessageType.default:
@@ -87,18 +87,18 @@ class WordBot(Client):
                                         .format(original_message.author.mention, original_message.content, original_message.jump_url))
                 
     async def on_message_edit(self, before, after):
-        self.remove_wotd(before)
-        self.on_message(after)
+        await self.remove_wotd(before)
+        await self.on_message(after)
 
     async def on_message_delete(self, message):
-        self.remove_wotd(message, deleted=True)
+        await self.remove_wotd(message, deleted=True)
 
     async def remove_wotd(self, msg, deleted=False):
         for key, wotd_info in self._words.items():
             if wotd_info.msg_id == msg.id:
                 self._words.pop(key)
                 if not deleted:
-                    self.remove_reaction(msg)
+                    await self.remove_reaction(msg)
                 return
             
     async def remove_reaction(self, msg):
