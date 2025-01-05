@@ -22,6 +22,7 @@ utc_info = timezone.utc
 EMOJI_ID = 1259346961627086918
 
 intents = Intents.default()
+intents.members = True
 intents.message_content = True
 
 class WordOfTheDayInfo:
