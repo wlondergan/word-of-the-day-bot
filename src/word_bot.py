@@ -99,7 +99,7 @@ class WordBot(Client):
     async def on_message_delete(self, message: Message):
         for wotd_info in self._words.values():
             if wotd_info.msg_id == message.id:
-                await message.channel.send("{} deleted their word of the day \"{}\"! Kinda embarrassing, not gonna lie..."
+                await message.channel.send("{} deleted their word of the day \"{}\"! Kinda embarrassing, not gonna lie... 💀"
                                            .format(message.author.mention, message.content))
         await self.remove_wotd(message, deleted=True)
 
