@@ -25,10 +25,11 @@ intents = Intents.default()
 intents.message_content = True
 
 class WordOfTheDayInfo:
-    def __init__(self, msg_id, user_id, timecode):
+    def __init__(self, msg_id, user_id, timecode, full_message):
         self.msg_id = msg_id
         self.user_id = user_id
         self.timecode = timecode
+        self.full_message = full_message
 
 def to_est(date: datetime) -> datetime:
     if date.tzinfo is None:
@@ -62,7 +63,7 @@ class WordBot(Client):
                 if type(res) is str:
                     timecode = to_est(message.created_at)
                     if not self._already_posted_on(timecode, message.author.id):
-                        self._words[res] = WordOfTheDayInfo(message.id, message.author.id, timecode)
+                        self._words[res] = WordOfTheDayInfo(message.id, message.author.id, timecode, message.content)
                     else:
                         await self.remove_reaction(message)
                 else:
@@ -85,7 +86,7 @@ class WordBot(Client):
                     if self._already_posted_on(timecode, message.author.id):
                         await message.reply("Only one word of the day per day, bozo 💀")
                     else:
-                        self._words[res] = WordOfTheDayInfo(message.id, message.author.id, timecode)
+                        self._words[res] = WordOfTheDayInfo(message.id, message.author.id, timecode, message.content)
                         await message.add_reaction(self.get_emoji(EMOJI_ID))
             elif res is not None:
                 original_message = await message.channel.fetch_message(res.msg_id)
@@ -96,12 +97,12 @@ class WordBot(Client):
         await self.remove_wotd(before)
         await self.on_message(after)
 
-    async def on_message_delete(self, message: Message):
-        for wotd_info in self._words.values():
-            if wotd_info.msg_id == message.id:
-                await message.channel.send("{} deleted their word of the day \"{}\"! Kinda embarrassing, not gonna lie... 💀"
-                                           .format(message.author.mention, message.content))
-        await self.remove_wotd(message, deleted=True)
+    async def on_raw_message_delete(self, message_event):
+        for word, wotd_info in self._words.items():
+            if wotd_info.msg_id == message_event.message_id:
+                await self.get_channel(channel_id).send("{} deleted their word of the day \"{}\"! Kinda embarrassing, not gonna lie... 💀"
+                                           .format(self.get_user(wotd_info.user_id).mention, wotd_info.full_message))
+                self._words.pop(word)
 
     async def remove_wotd(self, msg, deleted=False):
         for key, wotd_info in self._words.items():
