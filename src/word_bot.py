@@ -64,6 +64,7 @@ class WordBot(Client):
                     timecode = to_est(message.created_at)
                     if not self._already_posted_on(timecode, message.author.id):
                         self._words[res] = WordOfTheDayInfo(message.id, message.author.id, timecode, message.content)
+                        await self.add_reaction(message)
                     else:
                         await self.remove_reaction(message)
                 else:
@@ -116,6 +117,15 @@ class WordBot(Client):
         for reaction in msg.reactions:
             if reaction.me:
                 await reaction.remove(self.user)
+
+    async def add_reaction(self, msg):
+        added = False
+        for reaction in msg.reactions:
+            if reaction.me:
+                added = True
+                break
+        if not added:
+            await msg.add_reaction(self.get_emoji(EMOJI_ID))
                 
     async def dispute_word():
         pass
