@@ -6,8 +6,13 @@ from english_processing import get_word_of_the_day, shortest_available_stem
 
 token = os.environ['TOKEN']
 channel_id = int(os.environ['CHANNEL_ID'])
+blacklist_file = os.environ['BLACKLIST']
+whitelist_file = os.environ['WHITELIST']
 eastern_time_info = ZoneInfo('America/New_York')
 utc_info = timezone.utc
+
+#blacklist = [str(line) for line in os.open(blacklist_file)]
+#whitelist = [str(line) for line in os.open(whitelist_file)]
 
 EMOJI_ID = 1259346961627086918
 
@@ -53,6 +58,10 @@ class WordBot(Client):
                     timecode = to_est(message.created_at)
                     if not self._already_posted_on(timecode, message.author.id):
                         self._words[res] = WordOfTheDayInfo(message.id, message.author.id, timecode)
+                    else:
+                        self.remove_reaction(message)
+                else:
+                    self.remove_reaction(message)
 
     async def on_message(self, message: Message):
         if message.channel.id == channel_id and message.type == MessageType.default:
@@ -76,6 +85,29 @@ class WordBot(Client):
                 original_message = await message.channel.fetch_message(res.msg_id)
                 await message.reply(":bangbang:Recycled word alert:bangbang:\n {} already said [{}]({})"
                                         .format(original_message.author.mention, original_message.content, original_message.jump_url))
+                
+    async def on_message_edit(self, before, after):
+        self.remove_wotd(before)
+        self.on_message(after)
+
+    async def on_message_delete(self, message):
+        self.remove_wotd(message, deleted=True)
+
+    async def remove_wotd(self, msg, deleted=False):
+        for key, wotd_info in self._words.items():
+            if wotd_info.msg_id == msg.id:
+                self._words.pop(key)
+                if not deleted:
+                    self.remove_reaction(msg)
+                return
+            
+    async def remove_reaction(self, msg):
+        for reaction in msg.reactions:
+            if reaction.me:
+                await reaction.remove(self.user)
+                
+    async def dispute_word():
+        pass
                 
 client = WordBot(intents=intents)
 client.run(token)
