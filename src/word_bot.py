@@ -136,7 +136,7 @@ class WordBot(Client):
             await msg.add_reaction(self.get_emoji(EMOJI_ID))
                 
     async def dispute_word(self, msg: Message, dispute_msg: Message):
-        word = get_word_of_the_day(msg)
+        word = get_word_of_the_day(msg.content)
         if word is None:
             await dispute_msg.reply("bot abuser 😱")
             return
