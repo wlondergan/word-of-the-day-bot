@@ -23,10 +23,10 @@ def is_word_candidate(msg: str) -> bool:
     msg_tokens = _tokenize_message(msg)
     return (len(msg_tokens) == 1 or msg_tokens[1][0] == '(')
     
-def get_word_of_the_day(msg: str) -> str | None:
+def get_word_of_the_day(msg: str, blacklist, whitelist) -> str | None:
     msg_tokens = _tokenize_message(msg)
     if len(msg_tokens) > 0:
         first_word = msg_tokens[0].lower()
-        if is_word_candidate(msg) and _real_english_word(first_word):
+        if is_word_candidate(msg) and _real_english_word(first_word, blacklist, whitelist):
             return first_word
     return None

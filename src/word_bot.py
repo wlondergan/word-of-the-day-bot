@@ -41,7 +41,7 @@ def to_est(date: datetime) -> datetime:
 class WordBot(Client):
 
     def _determine_word_of_the_day(self, message: Message) -> str | WordOfTheDayInfo:
-        word = get_word_of_the_day(message.content)
+        word = get_word_of_the_day(message.content, self._blacklist, self._whitelist)
         if word is not None:
             stem = shortest_available_stem(word)
 
@@ -136,7 +136,7 @@ class WordBot(Client):
             await msg.add_reaction(self.get_emoji(EMOJI_ID))
                 
     async def dispute_word(self, msg: Message, dispute_msg: Message):
-        word = get_word_of_the_day(msg.content)
+        word = get_word_of_the_day(msg.content, self._blacklist, self._whitelist)
         if word is None:
             await dispute_msg.reply("bot abuser 😱")
             return
