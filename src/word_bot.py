@@ -1,8 +1,9 @@
 from discord import Client, MessageType, Intents, Message
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from zoneinfo import ZoneInfo
-from english_processing import get_word_of_the_day, shortest_available_stem
+from english_processing import get_word_of_the_day, shortest_available_stem, is_word_candidate
+import asyncio
 
 import sys
 
@@ -11,15 +12,15 @@ def eprint(*args, **kwargs):
 
 token = os.environ['TOKEN']
 channel_id = int(os.environ['CHANNEL_ID'])
-#blacklist_file = os.environ['BLACKLIST']
-#whitelist_file = os.environ['WHITELIST']
+blacklist_file = os.environ['BLACKLIST']
+whitelist_file = os.environ['WHITELIST']
 eastern_time_info = ZoneInfo('America/New_York')
 utc_info = timezone.utc
 
-#blacklist = [str(line) for line in os.open(blacklist_file)]
-#whitelist = [str(line) for line in os.open(whitelist_file)]
-
 EMOJI_ID = 1259346961627086918
+POLL_DURATION_HRS = 10
+POLL_VOTE_THRESHOLD = 5
+DISPUTE_MESSAGE = 'WRONG'
 
 intents = Intents.default()
 intents.members = True
@@ -57,6 +58,8 @@ class WordBot(Client):
                 
     async def on_ready(self):
         self._words = {}
+        self._blacklist = [str(line) for line in os.open(blacklist_file)]
+        self._whitelist = [str(line) for line in os.open(whitelist_file)]
         wotd_channel = self.get_channel(channel_id)
         async for message in wotd_channel.history(limit=None, oldest_first=True):
             if message.author != self.user.id and message.type == MessageType.default:
@@ -73,11 +76,15 @@ class WordBot(Client):
         eprint("Finished parsing previous messages and setting up.")
 
     async def on_message(self, message: Message):
-        if message.channel.id == channel_id and message.type == MessageType.default:
+        if message.author.id == self.user.id or message.channel.id != channel_id: #only want wotd channel and non bot messages
+            return
+        
+        if message.type == MessageType.reply:
+            if message.content == DISPUTE_MESSAGE:
+                await self.dispute_word(await message.channel.fetch_message(message.reference.message_id), message)
+
+        elif message.type == MessageType.default:
             print(message.content)
-            #don't bother checking the bot's own messages
-            if message.author.id == self.user.id:
-                return
             
             res = self._determine_word_of_the_day(message)
 
@@ -128,8 +135,43 @@ class WordBot(Client):
         if not added:
             await msg.add_reaction(self.get_emoji(EMOJI_ID))
                 
-    async def dispute_word():
-        pass
+    async def dispute_word(self, msg: Message, dispute_msg: Message):
+        word = get_word_of_the_day(msg)
+        if word is None:
+            await dispute_msg.reply("bot abuser 😱")
+            return
+        poll = await msg.reply("Is {} an acceptable word?".format(msg.content))
+        await poll.add_reaction('✔️')
+        await poll.add_reaction('❌')
+        await asyncio.sleep(POLL_DURATION_HRS * 3600)
+        completed_poll = await msg.channel.fetch_message(poll.id)
+        yes_count = 0
+        no_count = 0
+        for reaction in completed_poll.reactions:
+            if reaction.emoji == '✔️':
+                yes_count = reaction.count - 1
+            elif reaction.emoji == '❌':
+                no_count = reaction.count - 1
+        
+        stem = shortest_available_stem(word)
+        if yes_count > no_count:
+            self._whitelist.append(stem)
+            if stem in self._blacklist:
+                self._blacklist.remove(stem) #make sure to clear it from the other list if it was on it
+        else: 
+            self._blacklist.append(stem)
+            if stem in self._whitelist:
+                self._whitelist.remove(stem)
+        self.write_white_blacklists()
+        await self.remove_reaction(msg)
+        await self.on_message(msg)
+        
+    def write_white_blacklists(self):
+        with open(blacklist_file, mode='wt', encoding='utf-8') as blfile:
+            blfile.write('\n'.join(self._blacklist))
+        with open(whitelist_file, mode='wt', encoding='utf-8') as wlfile:
+            wlfile.write('\n'.join(self._whitelist))
+
                 
 client = WordBot(intents=intents)
 client.run(token)
