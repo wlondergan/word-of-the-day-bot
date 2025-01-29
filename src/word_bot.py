@@ -58,8 +58,8 @@ class WordBot(Client):
                 
     async def on_ready(self):
         self._words = {}
-        self._blacklist = [str(line) for line in os.open(blacklist_file)]
-        self._whitelist = [str(line) for line in os.open(whitelist_file)]
+        self._blacklist = [str(line) for line in open(blacklist_file)]
+        self._whitelist = [str(line) for line in open(whitelist_file)]
         wotd_channel = self.get_channel(channel_id)
         async for message in wotd_channel.history(limit=None, oldest_first=True):
             if message.author != self.user.id and message.type == MessageType.default:
