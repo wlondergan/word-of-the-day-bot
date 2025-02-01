@@ -140,12 +140,14 @@ class WordBot(Client):
         if word is None:
             await dispute_msg.reply("bot abuser 😱")
             return
-        poll_close = to_est(datetime.now() + timedelta(hours=POLL_DURATION_HRS))
-        poll = await msg.reply("{} has thrown down the gauntlet 😱😱\nIs {} an acceptable word of the day?\nPoll closes in {} hours"
-                               .format(dispute_msg.author.mention, msg.content, poll_close.time))
+        poll = await msg.reply("{} has thrown down the gauntlet 😱😱\nIs {} an acceptable word of the day?\nHours to close: {}"
+                               .format(dispute_msg.author.mention, msg.content, POLL_DURATION_HRS))
         await poll.add_reaction('✔️')
         await poll.add_reaction('❌')
-        await asyncio.sleep(POLL_DURATION_HRS * 3600)
+        for i in range(1, POLL_DURATION_HRS + 1):
+            await asyncio.sleep(3600)
+            poll.edit(content="{} has thrown down the gauntlet 😱😱\nIs {} an acceptable word of the day?\nHours to close: {}"
+                               .format(dispute_msg.author.mention, msg.content, POLL_DURATION_HRS - i))
         completed_poll = await msg.channel.fetch_message(poll.id)
         yes_count = 0
         no_count = 0
