@@ -2,7 +2,7 @@ from discord import Client, MessageType, Intents, Message
 import os
 from datetime import datetime, timezone, timedelta
 from zoneinfo import ZoneInfo
-from english_processing import get_word_of_the_day, shortest_available_stem, is_word_candidate
+from english_processing import get_word_of_the_day, shortest_available_stem, is_word_candidate, get_word_candidate
 import asyncio
 
 import sys
@@ -136,11 +136,13 @@ class WordBot(Client):
             await msg.add_reaction(self.get_emoji(EMOJI_ID))
                 
     async def dispute_word(self, msg: Message, dispute_msg: Message):
-        word = get_word_of_the_day(msg.content, self._blacklist, self._whitelist)
+        word = get_word_candidate(msg.content, self._blacklist, self._whitelist)
         if word is None:
             await dispute_msg.reply("bot abuser 😱")
             return
-        poll = await msg.reply("Is {} an acceptable word?".format(msg.content))
+        poll_close = to_est(datetime.now() + timedelta(hours=POLL_DURATION_HRS))
+        poll = await msg.reply("{} has thrown down the gauntlet 😱😱\nIs {} an acceptable word of the day?\nPoll closes at {}"
+                               .format(dispute_msg.author.mention, msg.content, poll_close.time))
         await poll.add_reaction('✔️')
         await poll.add_reaction('❌')
         await asyncio.sleep(POLL_DURATION_HRS * 3600)
@@ -153,15 +155,20 @@ class WordBot(Client):
             elif reaction.emoji == '❌':
                 no_count = reaction.count - 1
         
+        poll_close_message = ""
+        
         stem = shortest_available_stem(word)
         if yes_count > no_count:
             self._whitelist.append(stem)
             if stem in self._blacklist:
                 self._blacklist.remove(stem) #make sure to clear it from the other list if it was on it
+                poll_close_message = "THE PEOPLE HAVE SPOKEN 😤\nTHIS WORD HAS BEEN DEEMED **VALID**!!"
         else: 
             self._blacklist.append(stem)
             if stem in self._whitelist:
                 self._whitelist.remove(stem)
+                poll_close_message = "THE PEOPLE HAVE SPOKEN 😤\nTHIS WORD HAS BEEN DEEMED **INVALID**!!"
+        await completed_poll.reply(poll_close_message)
         self.write_white_blacklists()
         await self.remove_reaction(msg)
         await self.on_message(msg)
