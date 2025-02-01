@@ -141,7 +141,7 @@ class WordBot(Client):
             await dispute_msg.reply("bot abuser 😱")
             return
         poll_close = to_est(datetime.now() + timedelta(hours=POLL_DURATION_HRS))
-        poll = await msg.reply("{} has thrown down the gauntlet 😱😱\nIs {} an acceptable word of the day?\nPoll closes at {}"
+        poll = await msg.reply("{} has thrown down the gauntlet 😱😱\nIs {} an acceptable word of the day?\nPoll closes in {} hours"
                                .format(dispute_msg.author.mention, msg.content, poll_close.time))
         await poll.add_reaction('✔️')
         await poll.add_reaction('❌')
@@ -170,6 +170,8 @@ class WordBot(Client):
                 poll_close_message = "THE PEOPLE HAVE SPOKEN 😤\nTHIS WORD HAS BEEN DEEMED **INVALID**!!"
         await completed_poll.reply(poll_close_message)
         self.write_white_blacklists()
+        await completed_poll.edit(content="{} has thrown down the gauntlet 😱😱\nIs {} an acceptable word of the day?\nPOLL HAS CLOSED. Votes YAY:{} Votes NAY:{}"
+                               .format(dispute_msg.author.mention, msg.content, yes_count, no_count))
         await self.remove_reaction(msg)
         await self.on_message(msg)
         
