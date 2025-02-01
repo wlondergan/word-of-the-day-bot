@@ -18,7 +18,7 @@ eastern_time_info = ZoneInfo('America/New_York')
 utc_info = timezone.utc
 
 EMOJI_ID = 1259346961627086918
-POLL_DURATION_HRS = 10
+POLL_DURATION_HRS = 6
 POLL_VOTE_THRESHOLD = 5
 DISPUTE_MESSAGE = 'WRONG'
 
@@ -146,7 +146,7 @@ class WordBot(Client):
         await poll.add_reaction('❌')
         for i in range(1, POLL_DURATION_HRS + 1):
             await asyncio.sleep(3600)
-            poll.edit(content="{} has thrown down the gauntlet 😱😱\nIs {} an acceptable word of the day?\nHours to close: {}"
+            await poll.edit(content="{} has thrown down the gauntlet 😱😱\nIs {} an acceptable word of the day?\nHours to close: {}"
                                .format(dispute_msg.author.mention, msg.content, POLL_DURATION_HRS - i))
         completed_poll = await msg.channel.fetch_message(poll.id)
         yes_count = 0
