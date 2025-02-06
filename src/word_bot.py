@@ -164,12 +164,12 @@ class WordBot(Client):
             self._whitelist.append(stem)
             if stem in self._blacklist:
                 self._blacklist.remove(stem) #make sure to clear it from the other list if it was on it
-                poll_close_message = "THE PEOPLE HAVE SPOKEN 😤\nTHIS WORD HAS BEEN DEEMED **VALID**!!"
+            poll_close_message = "THE PEOPLE HAVE SPOKEN 😤\nTHIS WORD HAS BEEN DEEMED **VALID**!!"
         else: 
             self._blacklist.append(stem)
             if stem in self._whitelist:
                 self._whitelist.remove(stem)
-                poll_close_message = "THE PEOPLE HAVE SPOKEN 😤\nTHIS WORD HAS BEEN DEEMED **INVALID**!!"
+            poll_close_message = "THE PEOPLE HAVE SPOKEN 😤\nTHIS WORD HAS BEEN DEEMED **INVALID**!!"
         await completed_poll.reply(poll_close_message)
         self.write_white_blacklists()
         await completed_poll.edit(content="{} has thrown down the gauntlet 😱😱\nIs {} an acceptable word of the day?\nPOLL HAS CLOSED. Votes YAY:{} Votes NAY:{}"
