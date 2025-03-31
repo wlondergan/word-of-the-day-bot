@@ -14,7 +14,7 @@ token = os.environ['TOKEN']
 channel_id = int(os.environ['CHANNEL_ID'])
 blacklist_file = os.environ['BLACKLIST']
 whitelist_file = os.environ['WHITELIST']
-april_fools_link = os.environ['APRILFOOLS']
+april_fools_link = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
 eastern_time_info = ZoneInfo('America/New_York')
 utc_info = timezone.utc
 
@@ -102,8 +102,8 @@ class WordBot(Client):
                         await message.add_reaction(self.get_emoji(EMOJI_ID))
 
                         if timecode.date() == APRIL_FOOLS.date():
-                            await message.reply(":bangbang:Recycled word alert:bangbang:\n {} already said [{}]({})"
-                                        .format(self.user.mention, message.content, april_fools_link))
+                            await message.reply(":bangbang:Recycled word alert:bangbang:\n {} already said [{}](<{}>)"
+                                        .format(message.author.mention, message.content, april_fools_link))
             elif res is not None:
                 original_message = await message.channel.fetch_message(res.msg_id)
                 await message.reply(":bangbang:Recycled word alert:bangbang:\n {} already said [{}]({})"
