@@ -14,8 +14,11 @@ token = os.environ['TOKEN']
 channel_id = int(os.environ['CHANNEL_ID'])
 blacklist_file = os.environ['BLACKLIST']
 whitelist_file = os.environ['WHITELIST']
+april_fools_link = os.environ['APRILFOOLS']
 eastern_time_info = ZoneInfo('America/New_York')
 utc_info = timezone.utc
+
+APRIL_FOOLS = datetime(month=4, day=1, year=2025)
 
 EMOJI_ID = 1259346961627086918
 POLL_DURATION_HRS = 6
@@ -97,6 +100,10 @@ class WordBot(Client):
                     else:
                         self._words[res] = WordOfTheDayInfo(message.id, message.author.id, timecode, message.content)
                         await message.add_reaction(self.get_emoji(EMOJI_ID))
+
+                        if timecode.date() == APRIL_FOOLS.date():
+                            await message.reply(":bangbang:Recycled word alert:bangbang:\n {} already said [{}]({})"
+                                        .format(self.user.mention, message.content, april_fools_link))
             elif res is not None:
                 original_message = await message.channel.fetch_message(res.msg_id)
                 await message.reply(":bangbang:Recycled word alert:bangbang:\n {} already said [{}]({})"
@@ -136,18 +143,19 @@ class WordBot(Client):
             await msg.add_reaction(self.get_emoji(EMOJI_ID))
                 
     async def dispute_word(self, msg: Message, dispute_msg: Message):
+        dispute_text = "{} has thrown down the gauntlet 😱😱\nIs **{}** an acceptable word of the day?".format(dispute_msg.author.mention, msg.content)
         word = get_word_candidate(msg.content)
         if word is None:
             await dispute_msg.reply("bot abuser 😱")
             return
-        poll = await msg.reply("{} has thrown down the gauntlet 😱😱\nIs {} an acceptable word of the day?\nHours to close: {}"
-                               .format(dispute_msg.author.mention, msg.content, POLL_DURATION_HRS))
+        poll = await msg.reply("{}\nHours to close: {}"
+                               .format(dispute_text, POLL_DURATION_HRS))
         await poll.add_reaction('✔️')
         await poll.add_reaction('❌')
         for i in range(1, POLL_DURATION_HRS + 1):
             await asyncio.sleep(3600)
-            await poll.edit(content="{} has thrown down the gauntlet 😱😱\nIs {} an acceptable word of the day?\nHours to close: {}"
-                               .format(dispute_msg.author.mention, msg.content, POLL_DURATION_HRS - i))
+            await poll.edit(content="{}\nHours to close: {}"
+                               .format(dispute_text, POLL_DURATION_HRS - i))
         completed_poll = await msg.channel.fetch_message(poll.id)
         yes_count = 0
         no_count = 0
@@ -172,8 +180,9 @@ class WordBot(Client):
             poll_close_message = "THE PEOPLE HAVE SPOKEN 😤\nTHIS WORD HAS BEEN DEEMED **INVALID**!!"
         await completed_poll.reply(poll_close_message)
         self.write_white_blacklists()
-        await completed_poll.edit(content="{} has thrown down the gauntlet 😱😱\nIs {} an acceptable word of the day?\nPOLL HAS CLOSED. Votes YAY:{} Votes NAY:{}"
-                               .format(dispute_msg.author.mention, msg.content, yes_count, no_count))
+        await completed_poll.edit(content="{}\nPOLL HAS CLOSED.\nVotes YAY: {}\nVotes NAY: {}"
+                               .format(dispute_text, yes_count, no_count))
+        await self.remove_wotd(msg)
         await self.remove_reaction(msg)
         await self.on_message(msg)
         
